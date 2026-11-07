@@ -1,10 +1,10 @@
 import numpy as np
 
-FREQ_MIN            = 58e9
-FREQ_MAX            = 63.5e9
+FREQ_MIN            = 59_133_931_281
+FREQ_MAX            = 62_366_068_720
 SAMPLE_RATE         = 1e6
 SAMPLES_PER_CHIRP   = 64
-PERIOD_CHIRP_REPEAT = 500e-6
+PERIOD_CHIRP_REPEAT = 411.238e-6
 CHIRPS_PER_FRAME    = 64
 PERIOD_FRAME_REPEAT = 0.1
 
