@@ -1,50 +1,60 @@
+from contextlib import closing
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
-from contextlib import closing
 
-import config as cfg
-from input import get_frames
-from range_fft.range_fft import frame_range_fft    
+from sources import getSource
+from estimators import getEstimator
+from evaluation.metrics import evaluate, report
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="FMCW radar range FFT")
-    parser.add_argument("--source", choices=("model", "live"), default="model", help="frame source: simulated model (default) or live radar")
+
+def parseArgs():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--source", default="model1")
+    parser.add_argument("--estimator", default="estimator1")
+    parser.add_argument("--plot", action="store_true")
+    parser.add_argument("--evaluate", action="store_true")
+    parser.add_argument("--frames", type=int, default=None)
+    parser.add_argument("--snr-db", type=float, default=None, dest="snrDb")
+    parser.add_argument("--fast", action="store_true")
     return parser.parse_args()
 
+
+def run(makeFrames, estimate, sourceArgs, plot=False):
+    estimatedDisplacements = []
+
+    with closing(makeFrames(**sourceArgs)) as frames:
+        for frame in frames:
+            # estimate
+            estimatedDisplacement = estimate(frame, plot=plot)
+
+            estimatedDisplacements.append(estimatedDisplacement)
+
+    return np.concatenate(estimatedDisplacements)
+
+
 def main():
-    args = parse_args()
+    args = parseArgs()
 
-    # setup range FFT plot
-    plt.ion()
-    fig, ax = plt.subplots()
-    bars = ax.bar(cfg.distance, np.zeros_like(cfg.distance), width=cfg.metres_per_bin * 0.8)
-    ax.set_title("Range FFT")
-    ax.set_xlabel("Distance (m)")
-    ax.set_ylabel("Magnitude")
-    half_bin = cfg.metres_per_bin / 2
-    ax.set_xlim(cfg.distance[0] - half_bin, cfg.distance[-1] + half_bin)
-    ax.set_ylim(0, 30)
+    # select source
+    makeFrames = getSource(args.source)
 
-    # get frames from chosen input source
-    with closing(get_frames(args.source)) as input_data:
+    # select estimator
+    estimate = getEstimator(args.estimator)
 
-        # per frame
-        for frame in input_data:
-            if not plt.fignum_exists(fig.number):
-                break
+    sourceArgs = {"realtime": not args.fast}
+    if args.frames is not None:
+        sourceArgs["numFrames"] = args.frames
+    if args.snrDb is not None:
+            sourceArgs["snrDb"] = args.snrDb
 
-            # range FFT
-            frame_fft, frame_fft_half_mag = frame_range_fft(frame)
+    estimatedDisplacements = run(makeFrames, estimate, sourceArgs, plot=args.plot)
 
-            # plot mean magnitude vs range
-            frame_fft_mean_mag = frame_fft_half_mag.mean(axis=0)
-            for bar, height in zip(bars, frame_fft_mean_mag):
-                bar.set_height(height)
-            plt.pause(0.001)
+    # evaluate
+    if args.evaluate:
+        report(evaluate(estimates=estimatedDisplacements, truth=0.0, plot=args.plot))
 
-    plt.ioff()
-    plt.show()
-    
+    plt.show(block=True)
+
 if __name__ == "__main__":
     main()

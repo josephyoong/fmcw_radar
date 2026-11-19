@@ -30,7 +30,7 @@ def build_sequence_config():
         ),
     )
 
-def live_frames(n_frames=0):
+def liveFrames(numFrames=0, realtime=True):
     from ifxradarsdk import get_version_full
     from ifxradarsdk.fmcw import DeviceFmcw
 
@@ -42,7 +42,7 @@ def live_frames(n_frames=0):
         device.set_acquisition_sequence(sequence)
 
         count = 0
-        while n_frames == 0 or count < n_frames:
+        while numFrames == 0 or count < numFrames:
             frame = device.get_next_frame()[0] # [rx, chirps, samples]
             yield np.asarray(frame[0], dtype=float)
             count += 1
