@@ -3,7 +3,7 @@ import numpy as np
 import config as cfg
 import plots
 from main import run
-from sources import getSource
+from sources import getSource, getTruth
 from estimators import getEstimator
 from evaluation.metrics import evaluate
 from evaluation.crlb import displacementVariance
@@ -14,6 +14,7 @@ NUM_FRAMES = 1000
 
 def sweep(source="model2", estimator="estimator1", numFrames=NUM_FRAMES):
     makeFrames = getSource(source)
+    truthDisplacement = getTruth(source)
     estimate = getEstimator(estimator)
 
     mses = []
@@ -22,8 +23,8 @@ def sweep(source="model2", estimator="estimator1", numFrames=NUM_FRAMES):
     print(f"{'SNR (dB)':>9} {'MSE (m2)':>12} {'CRLB (m2)':>12} {'MSE/CRLB':>9}")
     for snrDb in SNRS_DB:
         sourceArgs = {"realtime": False, "numFrames": numFrames, "snrDb": snrDb}
-        estimates = run(makeFrames, estimate, sourceArgs)
-        results = evaluate(estimates=estimates, truth=0.0, plot=False)
+        times, estimates = run(makeFrames, estimate, sourceArgs)
+        results = evaluate(estimates=estimates, truth=truthDisplacement(times), plot=False)
         crlb = displacementVariance(snrDb)
         mses.append(results["mse"])
         crlbs.append(crlb)

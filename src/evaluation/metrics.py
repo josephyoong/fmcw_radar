@@ -14,7 +14,7 @@ def evaluate(estimates, truth, plot=True):
         "n":        estimates.size,
         "mean":     estimates.mean(),
         "bias":     error.mean(),
-        "variance": estimates.var(),
+        "variance": error.var(),
         "mse":      (error**2).mean(),
         "rmse":     np.sqrt((error**2).mean()),
     }

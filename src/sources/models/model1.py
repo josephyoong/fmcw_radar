@@ -1,5 +1,3 @@
-# stationary single-point reflector
-
 import numpy as np
 import time
 
@@ -7,6 +5,9 @@ import config as cfg
 
 PERIOD_RECORDING = 30
 NUM_FRAMES = round(PERIOD_RECORDING / cfg.PERIOD_FRAME_REPEAT)
+
+def getDisplacement(times):
+    return getRange(times) - getRange(times - cfg.PERIOD_CHIRP_REPEAT)
 
 def getRange(time):
     r = 0.5

@@ -1,5 +1,3 @@
-# stationary single-point reflector with white Gaussian noise
-
 import numpy as np
 import time
 
@@ -11,6 +9,9 @@ NUM_FRAMES = round(PERIOD_RECORDING / cfg.PERIOD_FRAME_REPEAT)
 AMPLITUDE = 1.0
 SNR_DB = 3.0
 rng = np.random.default_rng(0)
+
+def getDisplacement(times):
+    return getRange(times) - getRange(times - cfg.PERIOD_CHIRP_REPEAT)
 
 def noiseVariance(snrDb, amplitude=AMPLITUDE):
     signalPower = amplitude**2
